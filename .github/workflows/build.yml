@@ -14,6 +14,40 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          git \
+          zip \
+          unzip \
+          openjdk-17-jdk \
+          autoconf \
+          libtool \
+          pkg-config \
+          zlib1g-dev \
+          libncurses5-dev \
+          libncursesw5-dev \
+          libtinfo5 \
+          cmake \
+          libffi-dev \
+          libssl-dev \
+          automake \
+          ccache \
+          clang \
+          lld
+
+    - name: Install Python dependencies
+      run: |
+        pip install --upgrade pip
+        pip install --upgrade Cython virtualenv buildozer
+
     - name: Cache Buildozer global directory
       uses: actions/cache@v4
       with:
@@ -31,15 +65,14 @@ jobs:
           ${{ runner.os }}-buildozer-local-
 
     - name: Build with Buildozer
-      uses: ArtemSBulgakov/buildozer-action@v1
-      id: buildozer
-      with:
-        command: buildozer android debug
-        buildozer_version: master
+      run: |
+        # Accept Android SDK license automatically
+        buildozer android debug
+      env:
+        BUILDOZER_ALLOW_ORG_KIVY: 1
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: puzzle-alarm-apk
         path: bin/*.apk
-
