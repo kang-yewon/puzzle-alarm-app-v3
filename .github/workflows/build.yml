@@ -11,82 +11,35 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          git \
-          ffmpeg \
-          libsdl2-dev \
-          libsdl2-image-dev \
-          libsdl2-mixer-dev \
-          libsdl2-ttf-dev \
-          libportmidi-dev \
-          libswscale-dev \
-          libavformat-dev \
-          libavcodec-dev \
-          zlib1g-dev \
-          libgstreamer1.0-dev \
-          gstreamer1.0-plugins-base \
-          gstreamer1.0-plugins-good \
-          gstreamer1.0-plugins-bad \
-          gstreamer1.0-plugins-ugly \
-          libgstreamer-plugins-base1.0-dev \
-          libsqlite3-dev \
-          sqlite3 \
-          bzip2 \
-          libbz2-dev \
-          libssl-dev \
-          openssl \
-          libgdbm-dev \
-          libgdbm-compat-dev \
-          liblzma-dev \
-          libreadline-dev \
-          libncursesw5-dev \
-          libffi-dev \
-          uuid-dev \
-          tar \
-          unzip \
-          zip \
-          openjdk-17-jdk \
-          autoconf \
-          libtool \
-          pkg-config \
-          ccache \
-          clang
-
-    - name: Install Buildozer and Cython
-      run: |
-        pip install --upgrade pip
-        pip install git+https://github.com/kivy/buildozer.git@master
-        pip install cython
-
-    - name: Cache Buildozer NDK/SDK
+    - name: Cache Buildozer global directory
       uses: actions/cache@v4
       with:
-        path: |
-          ~/.buildozer
-          .buildozer
-        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+        path: ~/.buildozer
+        key: ${{ runner.os }}-buildozer-global-${{ hashFiles('buildozer.spec') }}
         restore-keys: |
-          ${{ runner.os }}-buildozer-
+          ${{ runner.os }}-buildozer-global-
+
+    - name: Cache Buildozer local directory
+      uses: actions/cache@v4
+      with:
+        path: .buildozer
+        key: ${{ runner.os }}-buildozer-local-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-local-
 
     - name: Build with Buildozer
-      run: |
-        buildozer android debug
-      env:
-        BUILDOZER_ALLOW_ORG_KIVY: 1
+      uses: ArtemSBulgakov/buildozer-action@v1
+      id: buildozer
+      with:
+        command: buildozer android debug
+        buildozer_version: master
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: puzzle-alarm-apk
         path: bin/*.apk
+
