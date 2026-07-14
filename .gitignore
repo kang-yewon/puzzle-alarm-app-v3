@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+settings.json
+.puzzle_alarm_settings.json
