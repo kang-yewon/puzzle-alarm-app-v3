@@ -30,12 +30,17 @@ class AppController:
         from kivy.utils import platform
         if platform == 'android':
             try:
-                import os
-                from .audio_manager import get_ringing_flag_path, schedule_android_alarm, cancel_android_alarm
+                from android import activity, mActivity
+                from .audio_manager import schedule_android_alarm, cancel_android_alarm
                 
-                # Check if alarm is currently supposed to be ringing (.ringing flag exists)
-                if os.path.exists(get_ringing_flag_path()):
-                    self.show_screen("ringing")
+                # Bind new intent listener (for when app is in background/open and alarm fires)
+                activity.bind(on_new_intent=self._on_new_intent)
+                
+                # Check if this boot/launch was triggered by the alarm intent
+                intent = mActivity.getIntent()
+                if intent and intent.getBooleanExtra("alarm_trigger", False):
+                    print("Kivy app opened via AlarmManager wakeup intent.")
+                    self._alarm_fire()
                     return
                     
                 # Otherwise, ensure exact alarm is scheduled
@@ -47,6 +52,14 @@ class AppController:
                 print(f"Android startup alarm sync error: {e}")
                 
         self.show_screen("home")
+
+    def _on_new_intent(self, intent) -> None:
+        try:
+            if intent and intent.getBooleanExtra("alarm_trigger", False):
+                print("Received alarm trigger intent via on_new_intent.")
+                self._alarm_fire()
+        except Exception as e:
+            print(f"Error handling on_new_intent: {e}")
 
     # ------------------------------------------------------------------
     # Window setup

@@ -10,45 +10,10 @@ from kivy.utils import platform
 
 _playing = False
 _sound = None
-_loop_thread = None
 _stop_event = threading.Event()
+_volume_stop_event = threading.Event()
+_volume_thread = None
 _current_sound_path = ""
-
-
-def get_ringing_flag_path() -> str:
-    from kivy.app import App
-    app = App.get_running_app()
-    if app and app.user_data_dir:
-        return os.path.join(app.user_data_dir, ".ringing")
-    # fallback
-    try:
-        from jnius import autoclass
-        PythonService = autoclass('org.kivy.android.PythonService')
-        service = PythonService.mService
-        if service:
-            return os.path.join(service.getApplicationContext().getFilesDir().getAbsolutePath(), "app", ".ringing")
-    except Exception:
-        pass
-    return os.path.join(os.path.expanduser("~"), ".ringing")
-
-
-def create_ringing_flag():
-    try:
-        path = get_ringing_flag_path()
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w") as f:
-            f.write("ringing")
-    except Exception as e:
-        print(f"Failed to create ringing flag: {e}")
-
-
-def delete_ringing_flag():
-    try:
-        path = get_ringing_flag_path()
-        if os.path.exists(path):
-            os.remove(path)
-    except Exception as e:
-        print(f"Failed to delete ringing flag: {e}")
 
 
 def get_next_alarm_time_ms(hour: int, minute: int, is_am: bool) -> int:
@@ -82,34 +47,27 @@ def schedule_android_alarm(hour: int, minute: int, is_am: bool):
         context = mActivity.getApplicationContext()
         alarm_manager = context.getSystemService(Context.ALARM_SERVICE)
         
-        service_class = autoclass('org.kangyewon.puzzlealarm.ServiceAlarm')
-        intent = Intent(context, service_class)
+        # Target: org.kivy.android.PythonActivity (launch Kivy directly when alarm fires)
+        activity_class = autoclass('org.kivy.android.PythonActivity')
+        intent = Intent(context, activity_class)
+        intent.setAction("org.kangyewon.puzzlealarm.ALARM_TRIGGER")
+        intent.putExtra("alarm_trigger", True)
         
-        # Put extras to identify foreground notification metadata
-        intent.putExtra('smallIcon', context.getApplicationInfo().icon)
-        intent.putExtra('contentTitle', 'Puzzle Alarm')
-        intent.putExtra('contentText', 'Background alarm monitor is running')
+        # Bring app to foreground and clear other activities
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP)
         
         # Request code 1001. FLAG_UPDATE_CURRENT (134217728) | FLAG_IMMUTABLE (67108864) = 201326592
-        pending_intent = PendingIntent.getService(context, 1001, intent, 201326592)
+        pending_intent = PendingIntent.getActivity(context, 1001, intent, 201326592)
         
         trigger_time_ms = get_next_alarm_time_ms(hour, minute, is_am)
         
-        Build = autoclass('android.os.Build$VERSION')
-        if Build.SDK_INT >= 23:
-            # Wake the device up even in idle/doze mode
-            alarm_manager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                trigger_time_ms,
-                pending_intent
-            )
-        else:
-            alarm_manager.setExact(
-                AlarmManager.RTC_WAKEUP,
-                trigger_time_ms,
-                pending_intent
-            )
-        print(f"Scheduled native wakeup alarm at {trigger_time_ms} ms")
+        # Set Alarm Clock info to show alarm icon in status bar and guarantee wake up
+        AlarmClockInfo = autoclass('android.app.AlarmManager$AlarmClockInfo')
+        show_pending_intent = PendingIntent.getActivity(context, 1002, Intent(context, activity_class), 201326592)
+        alarm_clock_info = AlarmClockInfo(trigger_time_ms, show_pending_intent)
+        
+        alarm_manager.setAlarmClock(alarm_clock_info, pending_intent)
+        print(f"Scheduled AlarmManager exact alarm clock wakeup at {trigger_time_ms} ms")
     except Exception as e:
         print(f"Failed to schedule native Android alarm: {e}")
 
@@ -128,44 +86,108 @@ def cancel_android_alarm():
         context = mActivity.getApplicationContext()
         alarm_manager = context.getSystemService(Context.ALARM_SERVICE)
         
-        service_class = autoclass('org.kangyewon.puzzlealarm.ServiceAlarm')
-        intent = Intent(context, service_class)
+        activity_class = autoclass('org.kivy.android.PythonActivity')
+        intent = Intent(context, activity_class)
+        intent.setAction("org.kangyewon.puzzlealarm.ALARM_TRIGGER")
         
-        pending_intent = PendingIntent.getService(context, 1001, intent, 201326592)
+        pending_intent = PendingIntent.getActivity(context, 1001, intent, 201326592)
         alarm_manager.cancel(pending_intent)
-        print("Cancelled native Android alarm successfully.")
+        print("Cancelled AlarmManager alarm successfully.")
     except Exception as e:
         print(f"Failed to cancel native Android alarm: {e}")
 
 
-def _beep_loop(stop_event: threading.Event) -> None:
-    import sys
-    while not stop_event.is_set():
-        try:
-            if sys.platform == "win32":
-                import winsound
-                winsound.Beep(880, 400)
-            else:
-                print("\a", end="", flush=True)
-        except Exception:
-            pass
-        stop_event.wait(0.8)
+def _volume_enforcer_loop(stop_event: threading.Event) -> None:
+    try:
+        from jnius import autoclass
+        from android import mActivity
+        
+        Context = autoclass('android.content.Context')
+        AudioManager = autoclass('android.media.AudioManager')
+        
+        context = mActivity.getApplicationContext()
+        audio_manager = context.getSystemService(Context.AUDIO_SERVICE)
+        
+        while not stop_event.is_set():
+            try:
+                # Force maximum alarm volume on STREAM_ALARM channel
+                max_vol = audio_manager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
+                audio_manager.setStreamVolume(AudioManager.STREAM_ALARM, max_vol, 0)
+            except Exception:
+                pass
+            time.sleep(0.5)
+    except Exception as e:
+        print(f"Volume enforcer thread setup failed: {e}")
+
+
+def _show_fullscreen_notification_android():
+    try:
+        from jnius import autoclass
+        from android import mActivity
+        
+        Context = autoclass('android.content.Context')
+        Intent = autoclass('android.content.Intent')
+        PendingIntent = autoclass('android.app.PendingIntent')
+        NotificationManager = autoclass('android.app.NotificationManager')
+        NotificationChannel = autoclass('android.app.NotificationChannel')
+        
+        context = mActivity.getApplicationContext()
+        channel_id = "alarm_channel"
+        channel_name = "Alarm Notification Channel"
+        importance = 4  # NotificationManager.IMPORTANCE_HIGH
+        
+        notification_manager = context.getSystemService(context.NOTIFICATION_SERVICE)
+        
+        Build = autoclass('android.os.Build$VERSION')
+        if Build.SDK_INT >= 26:
+            channel = NotificationChannel(channel_id, channel_name, importance)
+            channel.enableVibration(True)
+            channel.setBypassDnd(True)
+            notification_manager.createNotificationChannel(channel)
+            
+            NotificationBuilder = autoclass('android.app.Notification$Builder')
+            builder = NotificationBuilder(context, channel_id)
+        else:
+            NotificationBuilder = autoclass('android.app.Notification$Builder')
+            builder = NotificationBuilder(context)
+            
+        PythonActivity = autoclass('org.kivy.android.PythonActivity')
+        intent = Intent(context, PythonActivity)
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        
+        pending_intent = PendingIntent.getActivity(context, 0, intent, 201326592)
+        
+        builder.setSmallIcon(17301555)  # android.R.drawable.ic_lock_idle_alarm
+        builder.setContentTitle("Puzzle Alarm")
+        builder.setContentText("Alarm is ringing! Tap to solve puzzles.")
+        builder.setPriority(2)  # Notification.PRIORITY_MAX
+        builder.setCategory("alarm")
+        builder.setFullScreenIntent(pending_intent, True)
+        
+        notification_manager.notify(999, builder.build())
+        print("Heads-up / FSI notification displayed.")
+    except Exception as e:
+        print(f"Failed to display full-screen intent notification: {e}")
 
 
 def play_alarm(sound_path: str = "") -> None:
-    global _playing, _sound, _loop_thread, _stop_event, _current_sound_path
+    global _playing, _sound, _volume_thread, _volume_stop_event, _current_sound_path
     if _playing:
         return
     _playing = True
-    _stop_event.clear()
     _current_sound_path = sound_path
 
-    # On Android, the background service plays sound and handles volume
+    # On Android, launch volume enforcer and FSI notification
     if platform == 'android':
-        create_ringing_flag()
-        return
+        _volume_stop_event.clear()
+        _volume_thread = threading.Thread(target=_volume_enforcer_loop, args=(_volume_stop_event,), daemon=True)
+        _volume_thread.start()
+        _show_fullscreen_notification_android()
 
-    # Try loading user-provided file using Kivy's SoundLoader
+    # Load sound file (use default_alarm.wav in root if path is empty/invalid)
+    if not sound_path or not os.path.isfile(sound_path):
+        sound_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "default_alarm.wav")
+
     if sound_path and os.path.isfile(sound_path):
         try:
             _sound = SoundLoader.load(sound_path)
@@ -176,39 +198,27 @@ def play_alarm(sound_path: str = "") -> None:
         except Exception as e:
             print(f"Error loading Kivy sound: {e}")
 
-    # Fallback beep loop
-    _loop_thread = threading.Thread(target=_beep_loop, args=(_stop_event,), daemon=True)
-    _loop_thread.start()
-
 
 def pause_alarm() -> None:
-    global _playing, _sound, _loop_thread, _stop_event
+    global _playing, _sound, _volume_stop_event
     if not _playing:
         return
     
     if platform == 'android':
-        delete_ringing_flag()
-        _playing = False
-        return
-
+        _volume_stop_event.set()
+        
     if _sound:
         try:
             _sound.stop()
         except Exception:
             pass
-    else:
-        _stop_event.set()
     _playing = False
 
 
 def resume_alarm() -> None:
-    global _playing, _sound, _loop_thread, _stop_event, _current_sound_path
+    global _playing, _sound, _current_sound_path
     if not _playing:
         play_alarm(_current_sound_path)
-        return
-
-    if platform == 'android':
-        create_ringing_flag()
         return
 
     if _sound:
@@ -216,21 +226,23 @@ def resume_alarm() -> None:
             _sound.play()
         except Exception:
             pass
-    else:
-        _stop_event.clear()
-        _loop_thread = threading.Thread(target=_beep_loop, args=(_stop_event,), daemon=True)
-        _loop_thread.start()
 
 
 def stop_alarm() -> None:
-    global _playing, _sound, _loop_thread, _stop_event
+    global _playing, _sound, _volume_stop_event
     _playing = False
     
     if platform == 'android':
-        delete_ringing_flag()
-        return
+        _volume_stop_event.set()
+        try:
+            from jnius import autoclass
+            from android import mActivity
+            NotificationManager = autoclass('android.app.NotificationManager')
+            notification_manager = mActivity.getApplicationContext().getSystemService(mActivity.getApplicationContext().NOTIFICATION_SERVICE)
+            notification_manager.cancel(999)
+        except Exception:
+            pass
 
-    _stop_event.set()
     if _sound:
         try:
             _sound.stop()
@@ -238,4 +250,3 @@ def stop_alarm() -> None:
         except Exception:
             pass
         _sound = None
-    _loop_thread = None
