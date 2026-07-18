@@ -97,7 +97,7 @@ class PuzzleScreen(BaseScreen):
 
         # Idle timer label
         self._timer_lbl = Label(
-            text=f"⏱ Alarm will ring again if idle for {IDLE_SECONDS}s.",
+            text=f"Alarm will ring again if idle for {IDLE_SECONDS}s.",
             font_name=FONT_NAME,
             font_size='11sp',
             color=TEXT_SEC,
@@ -203,10 +203,10 @@ class PuzzleScreen(BaseScreen):
 
     def _tick_idle(self, dt=None) -> None:
         if self._remaining <= 5:
-            self._timer_lbl.text = f"⏱ Alarm will ring again in {self._remaining}s!"
+            self._timer_lbl.text = f"Alarm will ring again in {self._remaining}s!"
             self._timer_lbl.color = WARNING
         else:
-            self._timer_lbl.text = f"⏱ Alarm will ring again if idle for {self._remaining}s."
+            self._timer_lbl.text = f"Alarm will ring again if idle for {self._remaining}s."
             self._timer_lbl.color = TEXT_SEC
 
         if self._remaining <= 0:
@@ -220,7 +220,7 @@ class PuzzleScreen(BaseScreen):
         from .. import audio_manager
         audio_manager.resume_alarm()
         self._alarm_ringing = True
-        self._timer_lbl.text = "🔔 Alarm is ringing! Solve puzzles to turn it off."
+        self._timer_lbl.text = "Alarm is ringing! Solve puzzles to turn it off."
         self._timer_lbl.color = WARNING
 
     def _silence_alarm(self) -> None:

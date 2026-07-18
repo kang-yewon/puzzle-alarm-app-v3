@@ -42,7 +42,7 @@ icon.filename = %(source.dir)s/icon.png
 orientation = portrait
 
 # (list) List of service to declare
-#services = Declaredservice:./service.py
+services = alarm:service.py
 
 
 #
@@ -53,7 +53,7 @@ orientation = portrait
 #android.enable_androidx = True
 
 # (list) Permissions
-android.permissions = WAKE_LOCK, VIBRATE, RECEIVE_BOOT_COMPLETED
+android.permissions = WAKE_LOCK, VIBRATE, RECEIVE_BOOT_COMPLETED, DISABLE_KEYGUARD, SYSTEM_ALERT_WINDOW
 
 # (int) Target Android API, should be as high as possible.
 android.api = 33

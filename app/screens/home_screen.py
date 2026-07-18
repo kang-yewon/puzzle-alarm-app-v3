@@ -52,8 +52,10 @@ class HomeScreen(BaseScreen):
 
         # Clock icon
         icon_lbl = Label(
-            text="⏰", 
-            font_size='56sp', 
+            text="ALARM", 
+            font_size='40sp', 
+            bold=True,
+            color=PRIMARY,
             size_hint_y=None, 
             height='100dp',
             halign='center'
@@ -113,7 +115,7 @@ class HomeScreen(BaseScreen):
 
         # Settings button
         settings_btn = Button(
-            text="  ⚙  Settings",
+            text="Settings",
             font_name=FONT_NAME,
             font_size='14sp',
             bold=True,

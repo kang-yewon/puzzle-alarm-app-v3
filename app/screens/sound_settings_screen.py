@@ -46,7 +46,7 @@ class SoundSettingsScreen(BaseScreen):
         )
 
         back_btn = Button(
-            text="←",
+            text="<",
             font_size='20sp',
             bold=True,
             background_normal='',
@@ -150,7 +150,7 @@ class SoundSettingsScreen(BaseScreen):
         )
 
         pick_btn = Button(
-            text="📂  Choose File",
+            text="Choose File",
             font_name=FONT_NAME,
             font_size='13sp',
             bold=True,

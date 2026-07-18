@@ -78,8 +78,8 @@ class CompleteScreen(BaseScreen):
         
         # We overlay the checkmark text label on top of the circle
         check_label = Label(
-            text="✓",
-            font_size='44sp',
+            text="OK",
+            font_size='36sp',
             bold=True,
             color=(1, 1, 1, 1),
             size_hint=(None, None),

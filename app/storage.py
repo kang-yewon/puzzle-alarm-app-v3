@@ -9,6 +9,18 @@ from .models import AlarmSettings, PuzzleType
 
 
 def get_settings_file_path() -> str:
+    # Try resolving via android service context first (if running inside background service)
+    try:
+        from jnius import autoclass
+        PythonService = autoclass('org.kivy.android.PythonService')
+        service = PythonService.mService
+        if service:
+            context = service.getApplicationContext()
+            files_dir = context.getFilesDir().getAbsolutePath()
+            return os.path.join(files_dir, "app", ".puzzle_alarm_settings.json")
+    except Exception:
+        pass
+
     from kivy.app import App
     app = App.get_running_app()
     if app and app.user_data_dir:

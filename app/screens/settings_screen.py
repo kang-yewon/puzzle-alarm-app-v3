@@ -58,7 +58,7 @@ class SettingsScreen(BaseScreen):
         )
 
         back_btn = Button(
-            text="←",
+            text="<",
             font_size='20sp',
             bold=True,
             background_normal='',
@@ -123,10 +123,10 @@ class SettingsScreen(BaseScreen):
 
         # Hour Adjustment
         hour_layout = BoxLayout(orientation='vertical', spacing=2)
-        up_h = Button(text="▲", font_size='14sp', color=TEXT, background_normal='', background_color=(0.9, 0.9, 0.92, 1))
+        up_h = Button(text="+", font_size='14sp', color=TEXT, background_normal='', background_color=(0.9, 0.9, 0.92, 1))
         up_h.bind(on_release=lambda instance: self._adjust_hour(1))
         self._hour_lbl = Label(text="07", font_size='28sp', bold=True, color=TEXT)
-        down_h = Button(text="▼", font_size='14sp', color=TEXT, background_normal='', background_color=(0.9, 0.9, 0.92, 1))
+        down_h = Button(text="-", font_size='14sp', color=TEXT, background_normal='', background_color=(0.9, 0.9, 0.92, 1))
         down_h.bind(on_release=lambda instance: self._adjust_hour(-1))
         hour_layout.add_widget(up_h)
         hour_layout.add_widget(self._hour_lbl)
@@ -138,10 +138,10 @@ class SettingsScreen(BaseScreen):
 
         # Minute Adjustment
         minute_layout = BoxLayout(orientation='vertical', spacing=2)
-        up_m = Button(text="▲", font_size='14sp', color=TEXT, background_normal='', background_color=(0.9, 0.9, 0.92, 1))
+        up_m = Button(text="+", font_size='14sp', color=TEXT, background_normal='', background_color=(0.9, 0.9, 0.92, 1))
         up_m.bind(on_release=lambda instance: self._adjust_minute(1))
         self._minute_lbl = Label(text="00", font_size='28sp', bold=True, color=TEXT)
-        down_m = Button(text="▼", font_size='14sp', color=TEXT, background_normal='', background_color=(0.9, 0.9, 0.92, 1))
+        down_m = Button(text="-", font_size='14sp', color=TEXT, background_normal='', background_color=(0.9, 0.9, 0.92, 1))
         down_m.bind(on_release=lambda instance: self._adjust_minute(-1))
         minute_layout.add_widget(up_m)
         minute_layout.add_widget(self._minute_lbl)
@@ -307,7 +307,7 @@ class SettingsScreen(BaseScreen):
         )
 
         self._sound_lbl = Label(
-            text="🔔 morning.mp3",
+            text="morning.mp3",
             font_name=FONT_NAME,
             font_size='13sp',
             color=TEXT,
@@ -411,9 +411,9 @@ class SettingsScreen(BaseScreen):
         path = self.controller.settings.sound_path
         if path and os.path.isfile(path):
             name = os.path.basename(path)
-            self._sound_lbl.text = f"🔔  {name}"
+            self._sound_lbl.text = f"{name}"
         else:
-            self._sound_lbl.text = "🔔  Default Sound"
+            self._sound_lbl.text = "Default Sound"
 
     def _cancel(self) -> None:
         self.controller.show_screen("home")

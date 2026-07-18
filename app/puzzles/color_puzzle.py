@@ -41,13 +41,13 @@ def _generate_puzzle():
 
     mode = random.choice(["hue", "val", "sat"])
     if mode == "hue":
-        delta = random.choice([-1, 1]) * random.uniform(0.007, 0.014)
+        delta = random.choice([-1, 1]) * random.uniform(0.0025, 0.0055)
         odd_color = _hsv_to_rgb(hue + delta, sat, val)
     elif mode == "val":
-        delta = random.choice([-1, 1]) * random.uniform(0.025, 0.045)
+        delta = random.choice([-1, 1]) * random.uniform(0.008, 0.016)
         odd_color = _hsv_to_rgb(hue, sat, val + delta)
     else:
-        delta = random.choice([-1, 1]) * random.uniform(0.04, 0.08)
+        delta = random.choice([-1, 1]) * random.uniform(0.015, 0.030)
         odd_color = _hsv_to_rgb(hue, sat + delta, val)
 
     base_color = _hsv_to_rgb(hue, sat, val)

@@ -25,6 +25,21 @@ class AppController:
         self._build_screens()
         self._alarm_manager = AlarmManager(on_alarm_trigger=self._on_alarm_trigger)
         self._alarm_manager.start(self.settings)
+        
+        # Start alarm background service if on Android
+        from kivy.utils import platform
+        if platform == 'android':
+            try:
+                import os
+                from .audio_manager import get_ringing_flag_path, start_alarm_service
+                start_alarm_service()
+                # If background service already triggered alarm and .ringing flag is set, go straight to ringing screen
+                if os.path.exists(get_ringing_flag_path()):
+                    self.show_screen("ringing")
+                    return
+            except Exception as e:
+                print(f"Android service boot/redirect error: {e}")
+                
         self.show_screen("home")
 
     # ------------------------------------------------------------------
@@ -36,6 +51,23 @@ class AppController:
         from kivy.utils import platform
         if platform != 'android':
             Window.size = (WINDOW_W, WINDOW_H)
+        else:
+            # Set window flags on Android to turn screen on and show over lockscreen
+            try:
+                from jnius import autoclass
+                activity = autoclass('org.kivy.android.PythonActivity').mActivity
+                if activity:
+                    WindowManager = autoclass('android.view.WindowManager$LayoutParams')
+                    window = activity.getWindow()
+                    window.addFlags(
+                        WindowManager.FLAG_SHOW_WHEN_LOCKED |
+                        WindowManager.FLAG_TURN_SCREEN_ON |
+                        WindowManager.FLAG_KEEP_SCREEN_ON |
+                        WindowManager.FLAG_DISMISS_KEYGUARD
+                    )
+                    print("Android lockscreen overlay and wake flags added successfully.")
+            except Exception as e:
+                print(f"Failed to add Android window flags: {e}")
         Window.bind(on_request_close=self._on_close)
 
     # ------------------------------------------------------------------
