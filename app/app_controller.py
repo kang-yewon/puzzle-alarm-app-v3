@@ -33,7 +33,9 @@ class AppController:
 
     def _setup_window(self) -> None:
         Window.title = "Puzzle Alarm"
-        Window.size = (WINDOW_W, WINDOW_H)
+        from kivy.utils import platform
+        if platform != 'android':
+            Window.size = (WINDOW_W, WINDOW_H)
         Window.bind(on_request_close=self._on_close)
 
     # ------------------------------------------------------------------

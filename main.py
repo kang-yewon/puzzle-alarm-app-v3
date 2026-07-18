@@ -5,11 +5,12 @@ Puzzle Alarm App — entry point.
 import os
 import sys
 
-# Configure window size before loading Kivy core
-from kivy.config import Config
-Config.set('graphics', 'width', '360')
-Config.set('graphics', 'height', '720')
-Config.set('graphics', 'resizable', False)
+# Configure window size before loading Kivy core on desktop
+if 'ANDROID_ARGUMENT' not in os.environ:
+    from kivy.config import Config
+    Config.set('graphics', 'width', '360')
+    Config.set('graphics', 'height', '720')
+    Config.set('graphics', 'resizable', False)
 
 from kivy.app import App
 from kivy.clock import Clock
