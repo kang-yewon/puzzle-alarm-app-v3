@@ -26,19 +26,25 @@ class AppController:
         self._alarm_manager = AlarmManager(on_alarm_trigger=self._on_alarm_trigger)
         self._alarm_manager.start(self.settings)
         
-        # Start alarm background service if on Android
+        # Synchronize native Android AlarmManager precise wakeup schedule on app launch
         from kivy.utils import platform
         if platform == 'android':
             try:
                 import os
-                from .audio_manager import get_ringing_flag_path, start_alarm_service
-                start_alarm_service()
-                # If background service already triggered alarm and .ringing flag is set, go straight to ringing screen
+                from .audio_manager import get_ringing_flag_path, schedule_android_alarm, cancel_android_alarm
+                
+                # Check if alarm is currently supposed to be ringing (.ringing flag exists)
                 if os.path.exists(get_ringing_flag_path()):
                     self.show_screen("ringing")
                     return
+                    
+                # Otherwise, ensure exact alarm is scheduled
+                if self.settings.enabled:
+                    schedule_android_alarm(self.settings.hour, self.settings.minute, self.settings.is_am)
+                else:
+                    cancel_android_alarm()
             except Exception as e:
-                print(f"Android service boot/redirect error: {e}")
+                print(f"Android startup alarm sync error: {e}")
                 
         self.show_screen("home")
 
@@ -127,6 +133,18 @@ class AppController:
     def save_settings(self) -> None:
         storage.save_settings(self.settings)
         self._alarm_manager.update_settings(self.settings)
+        
+        # Schedule or cancel native Android AlarmManager exact wakeup
+        from kivy.utils import platform
+        if platform == 'android':
+            try:
+                from .audio_manager import schedule_android_alarm, cancel_android_alarm
+                if self.settings.enabled:
+                    schedule_android_alarm(self.settings.hour, self.settings.minute, self.settings.is_am)
+                else:
+                    cancel_android_alarm()
+            except Exception as e:
+                print(f"Android save settings alarm sync error: {e}")
 
     # ------------------------------------------------------------------
     # Cleanup

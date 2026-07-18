@@ -1,5 +1,5 @@
 """
-Audio playback abstraction layer using Kivy's SoundLoader or Android Background Service.
+Audio playback and native Android alarm scheduling abstraction layer.
 """
 
 import threading
@@ -51,29 +51,91 @@ def delete_ringing_flag():
         print(f"Failed to delete ringing flag: {e}")
 
 
-def start_alarm_service():
-    if platform == 'android':
-        try:
-            from jnius import autoclass
-            from android import mActivity
-            context = mActivity.getApplicationContext()
-            service_class = autoclass('org.kangyewon.puzzlealarm.ServiceAlarm')
-            intent = autoclass('android.content.Intent')(context, service_class)
-            
-            # Put extras for foreground service notification
-            intent.putExtra('smallIcon', context.getApplicationInfo().icon)
-            intent.putExtra('contentTitle', 'Puzzle Alarm')
-            intent.putExtra('contentText', 'Background alarm monitor is running')
-            
-            # Use startForegroundService on Android 8.0+
-            Build = autoclass('android.os.Build$VERSION')
-            if Build.SDK_INT >= 26:
-                context.startForegroundService(intent)
-            else:
-                context.startService(intent)
-            print("Foreground AlarmService started successfully.")
-        except Exception as e:
-            print(f"Failed to start Foreground AlarmService: {e}")
+def get_next_alarm_time_ms(hour: int, minute: int, is_am: bool) -> int:
+    from datetime import datetime, timedelta
+    import time
+    
+    now = datetime.now()
+    h24 = hour % 12
+    if not is_am:
+        h24 += 12
+        
+    alarm_time = now.replace(hour=h24, minute=minute, second=0, microsecond=0)
+    if alarm_time <= now:
+        alarm_time += timedelta(days=1)
+        
+    return int(time.mktime(alarm_time.timetuple()) * 1000)
+
+
+def schedule_android_alarm(hour: int, minute: int, is_am: bool):
+    if platform != 'android':
+        return
+    try:
+        from jnius import autoclass
+        from android import mActivity
+        
+        Context = autoclass('android.content.Context')
+        AlarmManager = autoclass('android.app.AlarmManager')
+        PendingIntent = autoclass('android.app.PendingIntent')
+        Intent = autoclass('android.content.Intent')
+        
+        context = mActivity.getApplicationContext()
+        alarm_manager = context.getSystemService(Context.ALARM_SERVICE)
+        
+        service_class = autoclass('org.kangyewon.puzzlealarm.ServiceAlarm')
+        intent = Intent(context, service_class)
+        
+        # Put extras to identify foreground notification metadata
+        intent.putExtra('smallIcon', context.getApplicationInfo().icon)
+        intent.putExtra('contentTitle', 'Puzzle Alarm')
+        intent.putExtra('contentText', 'Background alarm monitor is running')
+        
+        # Request code 1001. FLAG_UPDATE_CURRENT (134217728) | FLAG_IMMUTABLE (67108864) = 201326592
+        pending_intent = PendingIntent.getService(context, 1001, intent, 201326592)
+        
+        trigger_time_ms = get_next_alarm_time_ms(hour, minute, is_am)
+        
+        Build = autoclass('android.os.Build$VERSION')
+        if Build.SDK_INT >= 23:
+            # Wake the device up even in idle/doze mode
+            alarm_manager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                trigger_time_ms,
+                pending_intent
+            )
+        else:
+            alarm_manager.setExact(
+                AlarmManager.RTC_WAKEUP,
+                trigger_time_ms,
+                pending_intent
+            )
+        print(f"Scheduled native wakeup alarm at {trigger_time_ms} ms")
+    except Exception as e:
+        print(f"Failed to schedule native Android alarm: {e}")
+
+
+def cancel_android_alarm():
+    if platform != 'android':
+        return
+    try:
+        from jnius import autoclass
+        from android import mActivity
+        
+        Context = autoclass('android.content.Context')
+        PendingIntent = autoclass('android.app.PendingIntent')
+        Intent = autoclass('android.content.Intent')
+        
+        context = mActivity.getApplicationContext()
+        alarm_manager = context.getSystemService(Context.ALARM_SERVICE)
+        
+        service_class = autoclass('org.kangyewon.puzzlealarm.ServiceAlarm')
+        intent = Intent(context, service_class)
+        
+        pending_intent = PendingIntent.getService(context, 1001, intent, 201326592)
+        alarm_manager.cancel(pending_intent)
+        print("Cancelled native Android alarm successfully.")
+    except Exception as e:
+        print(f"Failed to cancel native Android alarm: {e}")
 
 
 def _beep_loop(stop_event: threading.Event) -> None:

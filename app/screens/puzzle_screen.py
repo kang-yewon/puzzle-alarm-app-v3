@@ -164,7 +164,6 @@ class PuzzleScreen(BaseScreen):
     def _do_max_fails_reset(self) -> None:
         self._silence_alarm()
         self._cancel_idle_timer()
-        self._puzzle_index = 0
         self._total += 1 # Add one more puzzle to solve!
         self._load_puzzle()
         self._reset_idle_timer()
