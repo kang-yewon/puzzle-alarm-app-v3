@@ -59,7 +59,7 @@ class SoundSettingsScreen(BaseScreen):
         header.add_widget(back_btn)
 
         title_lbl = Label(
-            text="알람 소리",
+            text="Alarm Sound",
             font_name=FONT_NAME,
             font_size='16sp',
             bold=True,
@@ -77,7 +77,7 @@ class SoundSettingsScreen(BaseScreen):
         body = BoxLayout(orientation='vertical', padding=[16, 20, 16, 20], spacing=16)
 
         # Current selection
-        self._build_section_label(body, "현재 선택")
+        self._build_section_label(body, "Current Selection")
 
         current_frame = BoxLayout(
             orientation='horizontal',
@@ -105,7 +105,7 @@ class SoundSettingsScreen(BaseScreen):
 
         info_layout = BoxLayout(orientation='vertical', spacing=2)
         self._current_name = Label(
-            text="기본 알람음",
+            text="Default Alarm Sound",
             font_name=FONT_NAME,
             font_size='13sp',
             bold=True,
@@ -116,7 +116,7 @@ class SoundSettingsScreen(BaseScreen):
         self._current_name.bind(size=lambda s, w: setattr(self._current_name, 'text_size', w))
         
         self._current_info = Label(
-            text="내장 비프음",
+            text="Built-in Beep",
             font_name=FONT_NAME,
             font_size='10sp',
             color=TEXT_SEC,
@@ -132,7 +132,7 @@ class SoundSettingsScreen(BaseScreen):
         body.add_widget(current_frame)
 
         # File picker section
-        self._build_section_label(body, "파일 선택")
+        self._build_section_label(body, "File Selection")
 
         pick_frame = BoxLayout(
             orientation='vertical',
@@ -150,7 +150,7 @@ class SoundSettingsScreen(BaseScreen):
         )
 
         pick_btn = Button(
-            text="📂  파일 선택하기",
+            text="📂  Choose File",
             font_name=FONT_NAME,
             font_size='13sp',
             bold=True,
@@ -164,7 +164,7 @@ class SoundSettingsScreen(BaseScreen):
         pick_frame.add_widget(pick_btn)
 
         hint = Label(
-            text="mp3 파일을 선택하면 알람 소리로 사용합니다.",
+            text="Select an audio file (.mp3, .wav) to use as the alarm sound.",
             font_name=FONT_NAME,
             font_size='10sp',
             color=TEXT_SEC,
@@ -179,7 +179,7 @@ class SoundSettingsScreen(BaseScreen):
 
         # Reset to default
         reset_btn = Button(
-            text="기본 알람음으로 초기화",
+            text="Reset to Default",
             font_name=FONT_NAME,
             font_size='12sp',
             background_normal='',
@@ -219,8 +219,8 @@ class SoundSettingsScreen(BaseScreen):
             self._current_name.text = name
             self._current_info.text = path
         else:
-            self._current_name.text = "기본 알람음"
-            self._current_info.text = "내장 비프음"
+            self._current_name.text = "Default Alarm Sound"
+            self._current_info.text = "Built-in Beep"
 
     def _pick_file(self) -> None:
         # Create a popup file chooser dialog
@@ -235,14 +235,14 @@ class SoundSettingsScreen(BaseScreen):
         btn_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height='45dp', spacing=10)
         
         cancel_btn = Button(
-            text="취소",
+            text="Cancel",
             font_name=FONT_NAME,
             background_normal='',
             background_color=(0.9, 0.9, 0.92, 1),
             color=TEXT
         )
         select_btn = Button(
-            text="선택",
+            text="Select",
             font_name=FONT_NAME,
             background_normal='',
             background_color=PRIMARY,
@@ -254,7 +254,7 @@ class SoundSettingsScreen(BaseScreen):
         popup_layout.add_widget(btn_layout)
         
         popup = Popup(
-            title="알람 소리 선택",
+            title="Select Alarm Sound",
             content=popup_layout,
             size_hint=(0.9, 0.9)
         )

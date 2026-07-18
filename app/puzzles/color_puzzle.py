@@ -65,7 +65,7 @@ class ColorPuzzle(BasePuzzle):
         self.spacing = 10
 
         desc = Label(
-            text="다른 색 하나를 찾아 터치하세요.",
+            text="Find and tap the unique color tile.",
             font_name=FONT_NAME,
             font_size='16sp',
             bold=True,
@@ -120,10 +120,10 @@ class ColorPuzzle(BasePuzzle):
                 Color(1, 1, 1, 1)
                 Line(rectangle=(button.x + 2, button.y + 2, button.width - 4, button.height - 4), width=2)
                 
-            self._feedback.text = "정답!"
+            self._feedback.text = "Correct!"
             self._feedback.color = COLORS["success"]
             Clock.schedule_once(lambda dt: self.on_success(), 0.5)
         else:
-            self._feedback.text = "틀렸어요. 다시 찾아보세요."
+            self._feedback.text = "Incorrect. Try again."
             self._feedback.color = COLORS["error"]
             self._record_wrong()

@@ -28,8 +28,8 @@ COLORS = {
 
 MAX_WRONG = 3
 
-# Globally registered font name for Korean characters
-FONT_NAME = 'NanumGothic'
+# Globally registered font name for English characters
+FONT_NAME = 'Roboto'
 
 
 class BasePuzzle(BoxLayout):

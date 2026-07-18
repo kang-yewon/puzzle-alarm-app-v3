@@ -26,8 +26,8 @@ INPUT_BG = hex_to_kivy("#F8F0FF")
 TOGGLE_ON = hex_to_kivy("#B96EFF")
 TOGGLE_OFF = hex_to_kivy("#CCCCCC")
 
-# Global Font name for Korean character rendering
-FONT_NAME = 'NanumGothic'
+# Global Font name for English character rendering
+FONT_NAME = 'Roboto'
 
 BG_COLOR = hex_to_kivy("#FFF0F5")
 

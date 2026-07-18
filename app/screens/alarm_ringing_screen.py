@@ -99,7 +99,7 @@ class AlarmRingingScreen(BaseScreen):
         layout.add_widget(self._clock_widget)
 
         title = Label(
-            text="알람입니다!",
+            text="Alarm Ringing!",
             font_name=FONT_NAME,
             font_size='24sp',
             bold=True,
@@ -111,7 +111,7 @@ class AlarmRingingScreen(BaseScreen):
         layout.add_widget(title)
 
         subtitle = Label(
-            text="일어나서 퍼즐을 풀어 알람을 해제하세요.",
+            text="Wake up and solve the puzzles to turn off the alarm.",
             font_name=FONT_NAME,
             font_size='13sp',
             color=TEXT_SEC,
@@ -125,7 +125,7 @@ class AlarmRingingScreen(BaseScreen):
 
         # Solve puzzle button
         puzzle_btn = Button(
-            text="퍼즐 풀기",
+            text="Solve Puzzles",
             font_name=FONT_NAME,
             font_size='18sp',
             bold=True,

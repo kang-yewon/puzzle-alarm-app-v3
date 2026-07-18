@@ -32,7 +32,7 @@ class AppController:
     # ------------------------------------------------------------------
 
     def _setup_window(self) -> None:
-        Window.title = "퍼즐 알람"
+        Window.title = "Puzzle Alarm"
         Window.size = (WINDOW_W, WINDOW_H)
         Window.bind(on_request_close=self._on_close)
 

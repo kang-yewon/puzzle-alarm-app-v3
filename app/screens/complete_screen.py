@@ -105,7 +105,7 @@ class CompleteScreen(BaseScreen):
         self.add_widget(check_label)
 
         title = Label(
-            text="완료!",
+            text="Success!",
             font_name=FONT_NAME,
             font_size='32sp',
             bold=True,
@@ -117,7 +117,7 @@ class CompleteScreen(BaseScreen):
         layout.add_widget(title)
 
         subtitle = Label(
-            text="모든 퍼즐을 성공했어요.",
+            text="All puzzles solved successfully.",
             font_name=FONT_NAME,
             font_size='14sp',
             color=TEXT_SEC,
@@ -130,7 +130,7 @@ class CompleteScreen(BaseScreen):
         layout.add_widget(BoxLayout(size_hint_y=0.2))
 
         self._counter_lbl = Label(
-            text="3초 후 홈 화면으로 돌아갑니다.",
+            text="Returning to home screen in 3 seconds.",
             font_name=FONT_NAME,
             font_size='11sp',
             color=TEXT_SEC,
@@ -149,7 +149,7 @@ class CompleteScreen(BaseScreen):
 
     def _tick(self, dt=None) -> None:
         if self._countdown > 0:
-            self._counter_lbl.text = f"{self._countdown}초 후 홈 화면으로 돌아갑니다."
+            self._counter_lbl.text = f"Returning to home screen in {self._countdown} seconds."
             self._countdown -= 1
             self._timer = Clock.schedule_once(self._tick, 1.0)
         else:

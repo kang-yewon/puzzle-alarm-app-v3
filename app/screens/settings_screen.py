@@ -71,7 +71,7 @@ class SettingsScreen(BaseScreen):
         header.add_widget(back_btn)
 
         title_lbl = Label(
-            text="알람 설정",
+            text="Alarm Settings",
             font_name=FONT_NAME,
             font_size='16sp',
             bold=True,
@@ -83,7 +83,7 @@ class SettingsScreen(BaseScreen):
         header.add_widget(title_lbl)
 
         save_btn = Button(
-            text="저장",
+            text="Save",
             font_name=FONT_NAME,
             font_size='14sp',
             bold=True,
@@ -104,7 +104,7 @@ class SettingsScreen(BaseScreen):
         body.bind(minimum_height=body.setter('height'))
 
         # Time Section
-        self._build_section_label(body, "알람 시간")
+        self._build_section_label(body, "Alarm Time")
         
         time_container = BoxLayout(
             orientation='horizontal',
@@ -164,7 +164,7 @@ class SettingsScreen(BaseScreen):
         body.add_widget(time_container)
 
         # Puzzle Type Section
-        self._build_section_label(body, "퍼즐 종류")
+        self._build_section_label(body, "Puzzle Type")
 
         puzzle_container = BoxLayout(
             orientation='vertical',
@@ -182,9 +182,9 @@ class SettingsScreen(BaseScreen):
         )
 
         puzzle_options = [
-            (PuzzleType.MATH, "수학 문제", "간단한 계산 문제를 풀어요"),
-            (PuzzleType.COLOR, "색 구분하기", "비슷한 색 중 다른 색을 찾아요"),
-            (PuzzleType.TYPING, "문장 타이핑", "문장을 똑같이 입력해요"),
+            (PuzzleType.MATH, "Math Puzzle", "Solve simple math problems"),
+            (PuzzleType.COLOR, "Color Match", "Find the different colored tile"),
+            (PuzzleType.TYPING, "Sentence Typing", "Type the exact sentence"),
         ]
         self._toggle_btns = {}
         for p_val, label, sub in puzzle_options:
@@ -224,7 +224,7 @@ class SettingsScreen(BaseScreen):
         body.add_widget(puzzle_container)
 
         # Puzzle Count Section
-        self._build_section_label(body, "퍼즐 개수")
+        self._build_section_label(body, "Puzzle Count")
 
         count_container = BoxLayout(
             orientation='horizontal',
@@ -263,12 +263,12 @@ class SettingsScreen(BaseScreen):
         count_container.add_widget(self._count_lbl)
 
         suffix_lbl = Label(
-            text="개",
+            text="puzzles",
             font_name=FONT_NAME,
             font_size='13sp',
             color=TEXT_SEC,
             size_hint_x=None,
-            width='20dp'
+            width='50dp'
         )
         count_container.add_widget(suffix_lbl)
 
@@ -288,7 +288,7 @@ class SettingsScreen(BaseScreen):
         body.add_widget(count_container)
 
         # Sound Section
-        self._build_section_label(body, "알람 소리")
+        self._build_section_label(body, "Alarm Sound")
 
         sound_row = ClickableRow(
             orientation='horizontal',
@@ -413,7 +413,7 @@ class SettingsScreen(BaseScreen):
             name = os.path.basename(path)
             self._sound_lbl.text = f"🔔  {name}"
         else:
-            self._sound_lbl.text = "🔔  기본 알람음"
+            self._sound_lbl.text = "🔔  Default Sound"
 
     def _cancel(self) -> None:
         self.controller.show_screen("home")

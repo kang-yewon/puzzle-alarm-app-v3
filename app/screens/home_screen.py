@@ -60,9 +60,9 @@ class HomeScreen(BaseScreen):
         )
         layout.add_widget(icon_lbl)
 
-        # "다음 알람"
+        # "Next Alarm"
         next_lbl = Label(
-            text="다음 알람",
+            text="Next Alarm",
             font_name=FONT_NAME,
             font_size='14sp',
             color=TEXT_SEC,
@@ -113,7 +113,7 @@ class HomeScreen(BaseScreen):
 
         # Settings button
         settings_btn = Button(
-            text="  ⚙  알람 설정",
+            text="  ⚙  Settings",
             font_name=FONT_NAME,
             font_size='14sp',
             bold=True,

@@ -8,7 +8,12 @@ import os
 from .models import AlarmSettings, PuzzleType
 
 
-_SETTINGS_FILE = os.path.join(os.path.expanduser("~"), ".puzzle_alarm_settings.json")
+def get_settings_file_path() -> str:
+    from kivy.app import App
+    app = App.get_running_app()
+    if app and app.user_data_dir:
+        return os.path.join(app.user_data_dir, ".puzzle_alarm_settings.json")
+    return os.path.join(os.path.expanduser("~"), ".puzzle_alarm_settings.json")
 
 
 def save_settings(settings: AlarmSettings) -> None:
@@ -21,15 +26,16 @@ def save_settings(settings: AlarmSettings) -> None:
         "puzzle_count": settings.puzzle_count,
         "sound_path": settings.sound_path,
     }
-    with open(_SETTINGS_FILE, "w", encoding="utf-8") as f:
+    with open(get_settings_file_path(), "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def load_settings() -> AlarmSettings:
-    if not os.path.exists(_SETTINGS_FILE):
+    path = get_settings_file_path()
+    if not os.path.exists(path):
         return AlarmSettings()
     try:
-        with open(_SETTINGS_FILE, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         return AlarmSettings(
             hour=data.get("hour", 7),

@@ -75,7 +75,7 @@ class PuzzleScreen(BaseScreen):
         )
 
         self._progress_lbl = Label(
-            text="문제 1 / 1",
+            text="Puzzle 1 / 1",
             font_name=FONT_NAME,
             font_size='14sp',
             bold=True,
@@ -97,7 +97,7 @@ class PuzzleScreen(BaseScreen):
 
         # Idle timer label
         self._timer_lbl = Label(
-            text=f"⏱ {IDLE_SECONDS}초 동안 아무 행동이 없으면 알람이 다시 울려요.",
+            text=f"⏱ Alarm will ring again if idle for {IDLE_SECONDS}s.",
             font_name=FONT_NAME,
             font_size='11sp',
             color=TEXT_SEC,
@@ -130,7 +130,7 @@ class PuzzleScreen(BaseScreen):
             self._puzzle_container.remove_widget(self._current_puzzle_widget)
             self._current_puzzle_widget = None
 
-        self._progress_lbl.text = f"문제 {self._puzzle_index + 1} / {self._total}"
+        self._progress_lbl.text = f"Puzzle {self._puzzle_index + 1} / {self._total}"
         self._progress_bar.set_progress(self._puzzle_index / self._total)
 
         puzzle_type = self.controller.settings.puzzle_type
@@ -168,7 +168,7 @@ class PuzzleScreen(BaseScreen):
         self._load_puzzle()
         self._reset_idle_timer()
         if self._timer_lbl:
-            self._timer_lbl.text = "오답이 3회 누적되어 처음부터 다시 풀어주세요."
+            self._timer_lbl.text = "3 wrong answers! Restarting from the first puzzle."
             self._timer_lbl.color = WARNING
 
     def _finish(self) -> None:
@@ -203,10 +203,10 @@ class PuzzleScreen(BaseScreen):
 
     def _tick_idle(self, dt=None) -> None:
         if self._remaining <= 5:
-            self._timer_lbl.text = f"⏱ {self._remaining}초 후 알람이 다시 울려요!"
+            self._timer_lbl.text = f"⏱ Alarm will ring again in {self._remaining}s!"
             self._timer_lbl.color = WARNING
         else:
-            self._timer_lbl.text = f"⏱ {self._remaining}초 동안 아무 행동이 없으면 알람이 다시 울려요."
+            self._timer_lbl.text = f"⏱ Alarm will ring again if idle for {self._remaining}s."
             self._timer_lbl.color = TEXT_SEC
 
         if self._remaining <= 0:
@@ -220,7 +220,7 @@ class PuzzleScreen(BaseScreen):
         from .. import audio_manager
         audio_manager.resume_alarm()
         self._alarm_ringing = True
-        self._timer_lbl.text = "🔔 알람이 울리고 있어요! 퍼즐을 풀어 알람을 멈추세요."
+        self._timer_lbl.text = "🔔 Alarm is ringing! Solve puzzles to turn it off."
         self._timer_lbl.color = WARNING
 
     def _silence_alarm(self) -> None:

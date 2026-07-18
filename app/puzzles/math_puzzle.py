@@ -88,7 +88,7 @@ class MathPuzzle(BasePuzzle):
         self.add_widget(self._entry)
 
         hint = Label(
-            text="정답 입력",
+            text="Enter Answer",
             font_name=FONT_NAME,
             font_size='12sp',
             color=COLORS["text_secondary"],
@@ -98,7 +98,7 @@ class MathPuzzle(BasePuzzle):
         self.add_widget(hint)
 
         confirm_btn = Button(
-            text="확인",
+            text="Confirm",
             font_name=FONT_NAME,
             font_size='16sp',
             bold=True,
@@ -131,15 +131,15 @@ class MathPuzzle(BasePuzzle):
         try:
             value = int(raw)
         except ValueError:
-            self._feedback.text = "숫자를 입력해 주세요."
+            self._feedback.text = "Please enter a number."
             self._feedback.color = COLORS["error"]
             return
         if value == self._answer:
-            self._feedback.text = "정답!"
+            self._feedback.text = "Correct!"
             self._feedback.color = COLORS["success"]
             Clock.schedule_once(lambda dt: self.on_success(), 0.4)
         else:
-            self._feedback.text = "틀렸어요. 다시 시도하세요."
+            self._feedback.text = "Incorrect. Try again."
             self._feedback.color = COLORS["error"]
             self._entry.text = ""
             self._record_wrong()

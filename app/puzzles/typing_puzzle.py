@@ -14,16 +14,16 @@ from .base_puzzle import BasePuzzle, COLORS, FONT_NAME
 
 
 _SENTENCES = [
-    "오늘도 좋은 하루입니다.",
-    "일어나서 하루를 시작하세요.",
-    "좋은 아침이에요, 힘내세요!",
-    "오늘 하루도 파이팅입니다.",
-    "일어나야 할 시간이에요.",
-    "새로운 하루가 시작되었습니다.",
-    "건강한 하루 보내세요.",
-    "일찍 일어나는 새가 먹이를 잡는다.",
-    "지금 일어나면 하루가 달라집니다.",
-    "알람을 끄고 기지개를 켜세요.",
+    "Have a nice day.",
+    "Wake up and start your day.",
+    "Good morning, stay strong!",
+    "You can do it today.",
+    "It is time to get up.",
+    "A brand new day has begun.",
+    "Have a healthy and happy day.",
+    "The early bird catches the worm.",
+    "Wake up now to change your day.",
+    "Turn off the alarm and stretch."
 ]
 
 
@@ -39,7 +39,7 @@ class TypingPuzzle(BasePuzzle):
         self.spacing = 10
 
         desc = Label(
-            text="아래 문장을 똑같이 입력하세요.",
+            text="Type the sentence below exactly.",
             font_name=FONT_NAME,
             font_size='13sp',
             color=COLORS["text_secondary"],
@@ -101,7 +101,7 @@ class TypingPuzzle(BasePuzzle):
         self.add_widget(self._entry)
 
         hint = Label(
-            text="여기에 입력하세요.",
+            text="Type here.",
             font_name=FONT_NAME,
             font_size='11sp',
             color=COLORS["text_secondary"],
@@ -111,7 +111,7 @@ class TypingPuzzle(BasePuzzle):
         self.add_widget(hint)
 
         confirm_btn = Button(
-            text="확인",
+            text="Confirm",
             font_name=FONT_NAME,
             font_size='14sp',
             bold=True,
@@ -140,11 +140,11 @@ class TypingPuzzle(BasePuzzle):
         self.notify_activity()
         typed = self._entry.text.strip()
         if typed == self._target:
-            self._feedback.text = "정답!"
+            self._feedback.text = "Correct!"
             self._feedback.color = COLORS["success"]
             Clock.schedule_once(lambda dt: self.on_success(), 0.4)
         else:
-            self._feedback.text = "똑같이 입력해 주세요."
+            self._feedback.text = "Please match the sentence exactly."
             self._feedback.color = COLORS["error"]
             self._entry.text = ""
             self._record_wrong()

@@ -46,7 +46,7 @@ if not font_registered:
 
 class PuzzleAlarmApp(App):
     def build(self):
-        self.title = "퍼즐 알람"
+        self.title = "Puzzle Alarm"
         controller = AppController()
         
         # Handle debug mode
