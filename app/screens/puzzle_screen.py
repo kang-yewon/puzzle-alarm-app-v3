@@ -165,10 +165,11 @@ class PuzzleScreen(BaseScreen):
         self._silence_alarm()
         self._cancel_idle_timer()
         self._puzzle_index = 0
+        self._total += 1 # Add one more puzzle to solve!
         self._load_puzzle()
         self._reset_idle_timer()
         if self._timer_lbl:
-            self._timer_lbl.text = "3 wrong answers! Restarting from the first puzzle."
+            self._timer_lbl.text = "3 wrong answers! +1 puzzle added."
             self._timer_lbl.color = WARNING
 
     def _finish(self) -> None:

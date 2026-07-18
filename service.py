@@ -28,6 +28,59 @@ def load_settings():
         return None
 
 
+def show_fullscreen_notification(context):
+    try:
+        from jnius import autoclass
+        
+        Intent = autoclass('android.content.Intent')
+        PendingIntent = autoclass('android.app.PendingIntent')
+        NotificationManager = autoclass('android.app.NotificationManager')
+        NotificationChannel = autoclass('android.app.NotificationChannel')
+        
+        channel_id = "alarm_channel"
+        channel_name = "Alarm Notification Channel"
+        importance = 4  # NotificationManager.IMPORTANCE_HIGH
+        
+        notification_manager = context.getSystemService(context.NOTIFICATION_SERVICE)
+        
+        Build = autoclass('android.os.Build$VERSION')
+        if Build.SDK_INT >= 26:
+            channel = NotificationChannel(channel_id, channel_name, importance)
+            channel.enableVibration(True)
+            channel.setBypassDnd(True)
+            notification_manager.createNotificationChannel(channel)
+            
+            NotificationBuilder = autoclass('android.app.Notification$Builder')
+            builder = NotificationBuilder(context, channel_id)
+        else:
+            NotificationBuilder = autoclass('android.app.Notification$Builder')
+            builder = NotificationBuilder(context)
+            
+        # Intent to launch Kivy App main activity
+        PythonActivity = autoclass('org.kivy.android.PythonActivity')
+        intent = Intent(context, PythonActivity)
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        
+        # Pending Intent flags: FLAG_UPDATE_CURRENT (134217728) | FLAG_IMMUTABLE (67108864) = 201326592
+        pending_intent = PendingIntent.getActivity(context, 0, intent, 201326592)
+        
+        # Set small icon (standard android alarm icon: android.R.drawable.ic_lock_idle_alarm = 17301555)
+        builder.setSmallIcon(17301555)
+        builder.setContentTitle("Puzzle Alarm")
+        builder.setContentText("Alarm is ringing! Tap to solve puzzles.")
+        builder.setPriority(2)  # Notification.PRIORITY_MAX = 2
+        builder.setCategory("alarm")
+        builder.setFullScreenIntent(pending_intent, True)
+        
+        notification = builder.build()
+        
+        # Show FSI notification
+        notification_manager.notify(999, notification)
+        print("Fullscreen notification triggered successfully.")
+    except Exception as e:
+        print(f"Failed to build/trigger fullscreen notification: {e}")
+
+
 def main():
     print("Background Alarm Service started.")
     
@@ -83,7 +136,10 @@ def main():
                     with open(flag_file, "w") as f:
                         f.write("ringing")
                     
-                    # Launch the Kivy app
+                    # Trigger FullScreen Intent notification (wakes up screen on Android)
+                    show_fullscreen_notification(context)
+                    
+                    # Launch Kivy app as fallback activity trigger
                     try:
                         Intent = autoclass('android.content.Intent')
                         package_manager = context.getPackageManager()
@@ -105,10 +161,16 @@ def main():
                             player = None
                         
                         player = MediaPlayer()
+                        
+                        # Load custom sound if specified and exists, otherwise default to local default_alarm.wav asset
                         sound_path = settings.get("sound_path", "")
-                        if sound_path and os.path.isfile(sound_path):
+                        if not sound_path or not os.path.isfile(sound_path):
+                            sound_path = os.path.join(files_dir, "app", "default_alarm.wav")
+                            
+                        if os.path.isfile(sound_path):
                             player.setDataSource(sound_path)
                         else:
+                            # Final fallback to standard alarm uri
                             uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
                             if not uri:
                                 uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
@@ -118,6 +180,7 @@ def main():
                         player.prepare()
                         player.setLooping(True)
                         player.start()
+                        print("Media player started playing sound.")
                     except Exception as ex:
                         print(f"Failed to prepare or start media player: {ex}")
             
