@@ -134,6 +134,9 @@ class TypingPuzzle(BasePuzzle):
         )
         self.add_widget(self._feedback)
 
+        # Flexible spacer at the bottom to push input elements to the top of the screen
+        self.add_widget(BoxLayout(size_hint_y=1))
+
         Clock.schedule_once(lambda dt: setattr(self._entry, 'focus', True), 0.1)
 
     def _check(self) -> None:
